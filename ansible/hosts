@@ -1,0 +1,7 @@
+# This is the default ansible 'hosts' file.
+#
+
+[xtradbcluster]
+dbnode01 ansible_ssh_host=172.16.122.131
+dbnode02 ansible_ssh_host=172.16.122.132
+dbnode03 ansible_ssh_host=172.16.122.133
