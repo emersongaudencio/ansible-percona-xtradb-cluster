@@ -56,19 +56,11 @@ if [ "$MYSQL_VERSION" == "80" ]; then
    yum -y install percona-xtradb-cluster-full
  elif [[ "$MYSQL_VERSION" == "57" ]]; then
    yum install https://repo.percona.com/yum/percona-release-latest.noarch.rpm -y
-   yum -y install Percona-XtraDB-Cluster-client-$MYSQL_VERSION
-   yum -y install Percona-XtraDB-Cluster-devel-$MYSQL_VERSION
-   yum -y install Percona-XtraDB-Cluster-server-$MYSQL_VERSION
-   yum -y install Percona-XtraDB-Cluster-shared-$MYSQL_VERSION
    yum -y install Percona-XtraDB-Cluster-shared-compat-$MYSQL_VERSION
-   yum -y install Percona-XtraDB-Cluster-galera-3
+   yum -y install Percona-XtraDB-Cluster-full-$MYSQL_VERSION
  elif [[ "$MYSQL_VERSION" == "56" ]]; then
    yum install https://repo.percona.com/yum/percona-release-latest.noarch.rpm -y
-   yum -y install Percona-XtraDB-Cluster-client-$MYSQL_VERSION
-   yum -y install Percona-XtraDB-Cluster-devel-$MYSQL_VERSION
-   yum -y install Percona-XtraDB-Cluster-server-$MYSQL_VERSION
-   yum -y install Percona-XtraDB-Cluster-shared-$MYSQL_VERSION
-   yum -y install Percona-XtraDB-Cluster-galera-3
+   yum -y install Percona-XtraDB-Cluster-full-$MYSQL_VERSION
 fi
 
 ### installation mysql add-ons via yum ####
@@ -164,6 +156,11 @@ echo '[Service]' > /etc/systemd/system/mysqld.service.d/limits.conf
 echo 'LimitNOFILE=102400' >> /etc/systemd/system/mysqld.service.d/limits.conf
 echo '[Service]' > /etc/systemd/system/mysqld.service.d/timeout.conf
 echo 'TimeoutSec=28800' >> /etc/systemd/system/mysqld.service.d/timeout.conf
+mkdir -p /etc/systemd/system/mysql.service.d/
+echo '[Service]' > /etc/systemd/system/mysql.service.d/limits.conf
+echo 'LimitNOFILE=102400' >> /etc/systemd/system/mysql.service.d/limits.conf
+echo '[Service]' > /etc/systemd/system/mysql.service.d/timeout.conf
+echo 'TimeoutSec=28800' >> /etc/systemd/system/mysql.service.d/timeout.conf
 systemctl daemon-reload
 
 echo "##############"

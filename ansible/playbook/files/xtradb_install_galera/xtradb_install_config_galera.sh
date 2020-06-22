@@ -141,6 +141,9 @@ internal_tmp_disk_storage_engine = MyISAM
 slave_parallel_type=LOGICAL_CLOCK
 slave_preserve_commit_order=1
 slave_parallel_workers=4
+#### disable cache ####
+query_cache_size                        = 0
+query_cache_type                        = 0
 "
  elif [[ "$MYSQL_VERSION" == "56" ]]; then
    EXTRA=""
@@ -152,6 +155,9 @@ slave_parallel_workers=4
 binlog_checksum=none
 enforce_gtid_consistency=on
 gtid_mode=on
+#### disable cache ####
+query_cache_size                        = 0
+query_cache_type                        = 0
 "
 fi
 
@@ -189,6 +195,20 @@ touch /tmp/$passwd
 echo $passwd > /tmp/$passwd
 hash=`md5sum  /tmp/$passwd | awk '{print $1}' | sed -e 's/^[[:space:]]*//' | tr -d '/"/'`
 
+if [ "$MYSQL_VERSION" == "80" ]; then
+GALERA_AUTH=""
+else
+GALERA_AUTH="wsrep_sst_auth                          = $GALERA_USER_NAME:$GALERA_USER_PWD"
+fi
+
+# clean standard mysql dir
+rm -rf /var/lib/mysql/*
+chown -R mysql:mysql /var/lib/mysql
+### remove old config file ####
+rm -rf /root/.my.cnf
+rm -rf /etc/my.cnf.d/server.cnf
+rm -rf /etc/my.cnf.d/galera.cnf
+
 echo "# This group is read both both by the client and the server
 # use it for options that affect everything
 #
@@ -225,9 +245,6 @@ bulk_insert_buffer_size                 = 128M
 # files limits
 open_files_limit                        = 102400
 innodb_open_files                       = 65536
-
-query_cache_size                        = 0
-query_cache_type                        = 0
 
 thread_handling                         = pool-of-threads
 thread_cache_size                       = 300
@@ -327,12 +344,6 @@ then
 kill -15 $pid_mysql
 fi
 sleep 10
-
-# clean standard mysql dir
-rm -rf /var/lib/mysql/*
-chown -R mysql:mysql /var/lib/mysql
-### remove old config file ####
-rm -rf /root/.my.cnf
 
 # create directories for mysql datadir and datalog
 if [ ! -d ${DATA_DIR} ]
@@ -440,7 +451,7 @@ wsrep_cluster_name                      = $GALERA_CLUSTER_NAME
 wsrep_cluster_address                   = gcomm://$GALERA_CLUSTER_ADDRESS
 wsrep_sst_method                        = xtrabackup-v2
 # This user is only used for xtrabackup-v2 SST method
-wsrep_sst_auth                          = $GALERA_USER_NAME:$GALERA_USER_PWD
+$GALERA_AUTH
 wsrep_sst_donor                         =
 wsrep_slave_threads                     = $WSREP_THREADS
 
@@ -453,11 +464,19 @@ inno-move-opts='--datadir=${DATA_DIR}'" > /etc/my.cnf.d/galera.cnf
 systemctl start mysql@bootstrap.service
 sleep 3
 
-### setup the users for galera cluster/replication streaming ###
-mysql -e "GRANT REPLICATION SLAVE ON *.* TO '$REPLICATION_USER_NAME'@'%' IDENTIFIED BY '$REPLICATION_USER_PWD';";
-mysql -e "GRANT SELECT, INSERT, CREATE, RELOAD, PROCESS, SUPER, LOCK TABLES, REPLICATION CLIENT ON *.* TO '$GALERA_USER_NAME'@'localhost' IDENTIFIED BY '$GALERA_USER_PWD';"
-mysql -e "GRANT PROCESS ON *.* TO '$MYSQLCHK_USER_NAME'@'localhost' IDENTIFIED BY '$MYSQLCHK_USER_PWD';";
-mysql -e "flush privileges;"
+if [ "$MYSQL_VERSION" == "80" ]; then
+  ### setup the users for monitoring/replication streaming and security purpose ###
+  mysql -e "CREATE USER '$REPLICATION_USER_NAME'@'%' IDENTIFIED BY '$REPLICATION_USER_PWD'; GRANT REPLICATION SLAVE ON *.* TO '$REPLICATION_USER_NAME'@'%';";
+  mysql -e "CREATE USER '$MYSQLCHK_USER_NAME'@'localhost' IDENTIFIED BY '$MYSQLCHK_USER_PWD'; GRANT PROCESS ON *.* TO '$MYSQLCHK_USER_NAME'@'localhost';";
+  mysql -e "flush privileges;"
+else
+  ### setup the users for galera cluster/replication streaming ###
+  mysql -e "GRANT REPLICATION SLAVE ON *.* TO '$REPLICATION_USER_NAME'@'%' IDENTIFIED BY '$REPLICATION_USER_PWD';";
+  mysql -e "GRANT SELECT, INSERT, CREATE, RELOAD, PROCESS, SUPER, LOCK TABLES, REPLICATION CLIENT ON *.* TO '$GALERA_USER_NAME'@'localhost' IDENTIFIED BY '$GALERA_USER_PWD';"
+  mysql -e "GRANT PROCESS ON *.* TO '$MYSQLCHK_USER_NAME'@'localhost' IDENTIFIED BY '$MYSQLCHK_USER_PWD';";
+  mysql -e "flush privileges;"
+fi
+
 
 else
 
@@ -507,7 +526,7 @@ wsrep_cluster_name                      = $GALERA_CLUSTER_NAME
 wsrep_cluster_address                   = gcomm://$GALERA_CLUSTER_ADDRESS
 wsrep_sst_method                        = xtrabackup-v2
 # This user is only used for xtrabackup-v2 SST method
-wsrep_sst_auth                          = $GALERA_USER_NAME:$GALERA_USER_PWD
+$GALERA_AUTH
 wsrep_sst_donor                         =
 wsrep_slave_threads                     = $WSREP_THREADS
 
