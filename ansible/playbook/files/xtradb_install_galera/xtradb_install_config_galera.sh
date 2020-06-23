@@ -456,8 +456,7 @@ wsrep_sst_donor                         =
 wsrep_slave_threads                     = $WSREP_THREADS
 
 [sst]
-inno-apply-opts='--use-memory=4G'
-inno-apply-opts='--datadir=${DATA_DIR}'
+inno-apply-opts='--use-memory=1024M --datadir=${DATA_DIR}'
 inno-move-opts='--datadir=${DATA_DIR}'" > /etc/my.cnf.d/galera.cnf
 
 ### start mysql with galera_new_cluster to inicialize the cluster on the primary server ###
@@ -531,8 +530,7 @@ wsrep_sst_donor                         =
 wsrep_slave_threads                     = $WSREP_THREADS
 
 [sst]
-inno-apply-opts='--use-memory=4G'
-inno-apply-opts='--datadir=${DATA_DIR}'
+inno-apply-opts='--use-memory=1024M --datadir=${DATA_DIR}'
 inno-move-opts='--datadir=${DATA_DIR}'" > /etc/my.cnf.d/galera.cnf
 
 ### start mysql service ###
