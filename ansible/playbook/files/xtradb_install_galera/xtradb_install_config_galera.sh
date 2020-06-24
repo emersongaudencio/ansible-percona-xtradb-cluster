@@ -121,10 +121,12 @@ gtid_mode=on
 master_info_repository=TABLE
 relay_log_info_repository=TABLE
 transaction_write_set_extraction=XXHASH64
-#disabled_storage_engines = MyISAM,BLACKHOLE,FEDERATED,CSV,ARCHIVE
+#### MTS config ####
 slave_parallel_type=LOGICAL_CLOCK
 slave_preserve_commit_order=1
-slave_parallel_workers=4"
+slave_parallel_workers=4
+#### PXC Config #####
+pxc-encrypt-cluster-traffic=OFF"
  elif [[ "$MYSQL_VERSION" == "57" ]]; then
    EXTRA="--initialize-insecure"
    ### collation and character set ###
