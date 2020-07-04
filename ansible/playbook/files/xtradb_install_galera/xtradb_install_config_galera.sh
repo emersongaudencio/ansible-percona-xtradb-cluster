@@ -25,12 +25,12 @@ NR_CPUS=$(cat /proc/cpuinfo | awk '/^processor/{print $3}' | wc -l)
 
 if [[ $NR_CPUS -gt 8 ]]
 then
- INNODB_INSTANCES=$NR_CPUS
+ INNODB_INSTANCES=16
  WSREP_THREADS=16
  INNODB_WRITES=16
  INNODB_READS=16
  INNODB_MIN_IO=200
- INNODB_MAX_IO=800
+ INNODB_MAX_IO=2000
  TEMP_TABLE_SIZE='16M'
  NR_CONNECTIONS=1000
  NR_CONNECTIONS_USER=950
@@ -46,7 +46,7 @@ else
  INNODB_WRITES=8
  INNODB_READS=8
  INNODB_MIN_IO=200
- INNODB_MAX_IO=300
+ INNODB_MAX_IO=800
  TEMP_TABLE_SIZE='16M'
  NR_CONNECTIONS=500
  NR_CONNECTIONS_USER=450
@@ -116,10 +116,12 @@ default-authentication-plugin=mysql_native_password
 
 ### configs innodb cluster ######
 binlog_checksum=none
+binlog_order_commits=1
 enforce_gtid_consistency=on
 gtid_mode=on
 master_info_repository=TABLE
 relay_log_info_repository=TABLE
+relay_log_recovery=1
 transaction_write_set_extraction=XXHASH64
 #### MTS config ####
 slave_parallel_type=LOGICAL_CLOCK
@@ -135,8 +137,12 @@ pxc-encrypt-cluster-traffic=OFF"
    WS_PROV="/usr/lib64/galera3/libgalera_smm.so"
    MYSQL_BLOCK="#### extra confs ####
 binlog_checksum=none
+binlog_order_commits=1
 enforce_gtid_consistency=on
 gtid_mode=on
+master_info_repository=TABLE
+relay_log_info_repository=TABLE
+relay_log_recovery=1
 #### tmp table storage engine ####
 internal_tmp_disk_storage_engine = MyISAM
 #### MTS config ####
@@ -157,6 +163,9 @@ query_cache_type                        = 0
 binlog_checksum=none
 enforce_gtid_consistency=on
 gtid_mode=on
+master_info_repository=TABLE
+relay_log_info_repository=TABLE
+relay_log_recovery=1
 #### disable cache ####
 query_cache_size                        = 0
 query_cache_type                        = 0
@@ -254,7 +263,7 @@ thread_cache_size                       = 300
 # logbin configs
 log-bin                                 = $DATA_LOG/mysql-bin
 binlog_format                           = ROW
-binlog_checksum                         = CRC32
+binlog_row_image                        = MINIMAL
 expire_logs_days                        = 5
 log_bin_trust_function_creators         = 1
 sync_binlog                             = 1
@@ -469,12 +478,14 @@ if [ "$MYSQL_VERSION" == "80" ]; then
   ### setup the users for monitoring/replication streaming and security purpose ###
   mysql -e "CREATE USER '$REPLICATION_USER_NAME'@'%' IDENTIFIED BY '$REPLICATION_USER_PWD'; GRANT REPLICATION SLAVE ON *.* TO '$REPLICATION_USER_NAME'@'%';";
   mysql -e "CREATE USER '$MYSQLCHK_USER_NAME'@'localhost' IDENTIFIED BY '$MYSQLCHK_USER_PWD'; GRANT PROCESS ON *.* TO '$MYSQLCHK_USER_NAME'@'localhost';";
+  mysql -e "CREATE USER '$MYSQLCHK_USER_NAME'@'%' IDENTIFIED BY '$MYSQLCHK_USER_PWD'; GRANT PROCESS ON *.* TO '$MYSQLCHK_USER_NAME'@'%';";
   mysql -e "flush privileges;"
 else
   ### setup the users for galera cluster/replication streaming ###
   mysql -e "GRANT REPLICATION SLAVE ON *.* TO '$REPLICATION_USER_NAME'@'%' IDENTIFIED BY '$REPLICATION_USER_PWD';";
   mysql -e "GRANT SELECT, INSERT, CREATE, RELOAD, PROCESS, SUPER, LOCK TABLES, REPLICATION CLIENT ON *.* TO '$GALERA_USER_NAME'@'localhost' IDENTIFIED BY '$GALERA_USER_PWD';"
   mysql -e "GRANT PROCESS ON *.* TO '$MYSQLCHK_USER_NAME'@'localhost' IDENTIFIED BY '$MYSQLCHK_USER_PWD';";
+  mysql -e "GRANT PROCESS ON *.* TO '$MYSQLCHK_USER_NAME'@'%' IDENTIFIED BY '$MYSQLCHK_USER_PWD';";
   mysql -e "flush privileges;"
 fi
 
