@@ -74,8 +74,8 @@ sh run_xtradb_galera_install.sh dbnode03 57 57 "10.116.0.4" "pxc57" "10.116.0.4,
 
 
 sh run_xtradb_galera_install.sh dbnode01 80 80 "10.110.0.4" "pxc80" "10.110.0.4,10.110.0.2,10.110.0.3"
-sh run_xtradb_galera_install.sh dbnode02 80 80 "10.110.0.4" "pxc57" "10.110.0.4,10.110.0.2,10.110.0.3"
-sh run_xtradb_galera_install.sh dbnode03 80 80 "10.110.0.4" "pxc57" "10.110.0.4,10.110.0.2,10.110.0.3"
+sh run_xtradb_galera_install.sh dbnode02 80 80 "10.110.0.4" "pxc80" "10.110.0.4,10.110.0.2,10.110.0.3"
+sh run_xtradb_galera_install.sh dbnode03 80 80 "10.110.0.4" "pxc80" "10.110.0.4,10.110.0.2,10.110.0.3"
 
 
 ```
