@@ -134,13 +134,15 @@ if [[ $os_type == "rhel" ]]; then
     if [ "$MYSQL_VERSION" == "80" ]; then
        yum install https://repo.percona.com/yum/percona-release-latest.noarch.rpm -y
        percona-release setup -y pxc80
-       sed -ie 's/enabled=1/enabled=1\nmodule_hotfixes=1/g' /etc/yum.repos.d/percona-ps-80-release.repo
+       sed -ie 's/enabled=1/enabled=1\nmodule_hotfixes=1/g' /etc/yum.repos.d/percona-pxc-80-release.repo
+       sed -ie 's/enabled = 1/enabled=1\nmodule_hotfixes=1/g' /etc/yum.repos.d/percona-pxc-80-release.repo
        yum -y install percona-xtradb-cluster-full
        yum -y install percona-xtrabackup-80
      elif [[ "$MYSQL_VERSION" == "57" ]]; then
        yum install https://repo.percona.com/yum/percona-release-latest.noarch.rpm -y
        percona-release setup -y pxc57
-       sed -ie 's/enabled=1/enabled=1\nmodule_hotfixes=1/g' /etc/yum.repos.d/percona-ps-57-release.repo
+       sed -ie 's/enabled=1/enabled=1\nmodule_hotfixes=1/g' /etc/yum.repos.d/percona-pxc-57-release.repo
+       sed -ie 's/enabled = 1/enabled=1\nmodule_hotfixes=1/g' /etc/yum.repos.d/percona-pxc-57-release.repo
        yum -y install Percona-XtraDB-Cluster-shared-compat-$MYSQL_VERSION
        yum -y install Percona-XtraDB-Cluster-full-$MYSQL_VERSION
        yum -y install percona-xtrabackup-24
